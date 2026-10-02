@@ -1,0 +1,324 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum UserRole {
+  ADMIN
+  MANAGER
+  STAFF
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum EntityStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum ClientStatus {
+  ACTIVE
+  INACTIVE
+  DORMANT
+}
+
+enum ClientType {
+  INDIVIDUAL
+  BUSINESS
+  DISTRIBUTOR
+  WHOLESALER
+  RETAILER
+  OTHER
+}
+
+enum SupplierType {
+  INDIVIDUAL
+  BUSINESS
+  FARMER
+  DISTRIBUTOR
+  MANUFACTURER
+  OTHER
+}
+
+enum ProductCategory {
+  FINISHED_PRODUCT
+  RAW_MATERIAL
+  OTHER
+}
+
+enum ProductUnit {
+  KG
+  TONNE
+  PIECE
+  OTHER
+}
+
+enum TransactionType {
+  CLIENT_PURCHASE
+  SUPPLIER_SUPPLY
+}
+
+enum TransactionStatus {
+  RECORDED
+  REVERSED
+}
+
+enum AuditAction {
+  LOGIN
+  LOGOUT
+  CREATE
+  UPDATE
+  DEACTIVATE
+  REACTIVATE
+  ROLE_CHANGE
+  PASSWORD_CHANGE
+  REPORT_EXPORT
+}
+
+model Role {
+  id          String           @id @default(uuid()) @db.Uuid
+  name        UserRole         @unique
+  description String
+  createdAt   DateTime         @default(now()) @map("created_at")
+  updatedAt   DateTime         @updatedAt @map("updated_at")
+  users       User[]
+  permissions RolePermission[]
+
+  @@map("roles")
+}
+
+model Permission {
+  id          String           @id @default(uuid()) @db.Uuid
+  key         String           @unique
+  description String
+  roles       RolePermission[]
+
+  @@map("permissions")
+}
+
+model RolePermission {
+  roleId       String     @map("role_id") @db.Uuid
+  permissionId String     @map("permission_id") @db.Uuid
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+  @@map("role_permissions")
+}
+
+model User {
+  id                  String               @id @default(uuid()) @db.Uuid
+  fullName            String               @map("full_name")
+  email               String               @unique
+  passwordHash        String               @map("password_hash")
+  roleId              String               @map("role_id") @db.Uuid
+  status              UserStatus           @default(ACTIVE)
+  lastLoginAt         DateTime?            @map("last_login_at")
+  emailVerified       Boolean              @default(false) @map("email_verified")
+  failedLoginAttempts Int                  @default(0) @map("failed_login_attempts")
+  lockedUntil         DateTime?            @map("locked_until")
+  mustChangePassword  Boolean              @default(false) @map("must_change_password")
+  createdAt           DateTime             @default(now()) @map("created_at")
+  updatedAt           DateTime             @updatedAt @map("updated_at")
+  role                Role                 @relation(fields: [roleId], references: [id])
+  transactions        Transaction[]
+  auditLogs           AuditLog[]
+  refreshTokens       RefreshToken[]
+  passwordResetTokens PasswordResetToken[]
+
+  @@index([roleId])
+  @@index([status])
+  @@map("users")
+}
+
+model RefreshToken {
+  id        String    @id @default(uuid()) @db.Uuid
+  userId    String    @map("user_id") @db.Uuid
+  tokenHash String    @unique @map("token_hash")
+  expiresAt DateTime  @map("expires_at")
+  revokedAt DateTime? @map("revoked_at")
+  userAgent String?   @map("user_agent")
+  ipAddress String?   @map("ip_address")
+  createdAt DateTime  @default(now()) @map("created_at")
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("refresh_tokens")
+}
+
+model PasswordResetToken {
+  id        String    @id @default(uuid()) @db.Uuid
+  userId    String    @map("user_id") @db.Uuid
+  tokenHash String    @unique @map("token_hash")
+  expiresAt DateTime  @map("expires_at")
+  usedAt    DateTime? @map("used_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("password_reset_tokens")
+}
+
+model Location {
+  id         String     @id @default(uuid()) @db.Uuid
+  name       String
+  district   String?
+  region     String?
+  latitude   Decimal?   @db.Decimal(9, 6)
+  longitude  Decimal?   @db.Decimal(9, 6)
+  distanceKm Decimal?   @map("distance_km") @db.Decimal(10, 2)
+  createdAt  DateTime   @default(now()) @map("created_at")
+  updatedAt  DateTime   @updatedAt @map("updated_at")
+  clients    Client[]
+  suppliers  Supplier[]
+
+  @@index([name])
+  @@map("locations")
+}
+
+model Client {
+  id            String        @id @default(uuid()) @db.Uuid
+  clientCode    String        @unique @map("client_code")
+  name          String
+  contactPerson String?       @map("contact_person")
+  phone         String?
+  email         String?
+  locationId    String?       @map("location_id") @db.Uuid
+  distanceKm    Decimal?      @map("distance_km") @db.Decimal(10, 2)
+  clientType    ClientType    @default(BUSINESS) @map("client_type")
+  status        ClientStatus  @default(ACTIVE)
+  notes         String?
+  createdAt     DateTime      @default(now()) @map("created_at")
+  updatedAt     DateTime      @updatedAt @map("updated_at")
+  location      Location?     @relation(fields: [locationId], references: [id])
+  transactions  Transaction[]
+
+  @@index([name])
+  @@index([phone])
+  @@index([locationId])
+  @@index([status])
+  @@map("clients")
+}
+
+model Supplier {
+  id            String        @id @default(uuid()) @db.Uuid
+  supplierCode  String        @unique @map("supplier_code")
+  name          String
+  contactPerson String?       @map("contact_person")
+  phone         String?
+  email         String?
+  locationId    String?       @map("location_id") @db.Uuid
+  distanceKm    Decimal?      @map("distance_km") @db.Decimal(10, 2)
+  supplierType  SupplierType  @default(BUSINESS) @map("supplier_type")
+  status        EntityStatus  @default(ACTIVE)
+  notes         String?
+  createdAt     DateTime      @default(now()) @map("created_at")
+  updatedAt     DateTime      @updatedAt @map("updated_at")
+  location      Location?     @relation(fields: [locationId], references: [id])
+  transactions  Transaction[]
+
+  @@index([name])
+  @@index([phone])
+  @@index([locationId])
+  @@index([status])
+  @@map("suppliers")
+}
+
+model Product {
+  id           String          @id @default(uuid()) @db.Uuid
+  productCode  String          @unique @map("product_code")
+  name         String
+  category     ProductCategory
+  description  String?
+  unit         ProductUnit     @default(KG)
+  status       EntityStatus    @default(ACTIVE)
+  createdAt    DateTime        @default(now()) @map("created_at")
+  updatedAt    DateTime        @updatedAt @map("updated_at")
+  transactions Transaction[]
+
+  @@index([name])
+  @@index([category])
+  @@index([status])
+  @@map("products")
+}
+
+model Transaction {
+  id                    String            @id @default(uuid()) @db.Uuid
+  transactionCode       String            @unique @map("transaction_code")
+  transactionType       TransactionType   @map("transaction_type")
+  clientId              String?           @map("client_id") @db.Uuid
+  supplierId            String?           @map("supplier_id") @db.Uuid
+  productId             String            @map("product_id") @db.Uuid
+  quantityKg            Decimal?          @map("quantity_kg") @db.Decimal(14, 3)
+  inputQuantity         Decimal           @map("input_quantity") @db.Decimal(14, 3)
+  inputUnit             ProductUnit       @map("input_unit")
+  transactionDate       DateTime          @map("transaction_date") @db.Date
+  referenceNumber       String?           @map("reference_number")
+  notes                 String?
+  recordedById          String            @map("recorded_by_id") @db.Uuid
+  status                TransactionStatus @default(RECORDED)
+  reversesTransactionId String?           @unique @map("reverses_transaction_id") @db.Uuid
+  createdAt             DateTime          @default(now()) @map("created_at")
+  updatedAt             DateTime          @updatedAt @map("updated_at")
+  client                Client?           @relation(fields: [clientId], references: [id])
+  supplier              Supplier?         @relation(fields: [supplierId], references: [id])
+  product               Product           @relation(fields: [productId], references: [id])
+  recordedBy            User              @relation(fields: [recordedById], references: [id])
+  reversesTransaction   Transaction?      @relation("TransactionReversal", fields: [reversesTransactionId], references: [id])
+  reversedBy            Transaction?      @relation("TransactionReversal")
+
+  @@index([clientId])
+  @@index([supplierId])
+  @@index([productId])
+  @@index([recordedById])
+  @@index([transactionType])
+  @@index([transactionDate])
+  @@map("transactions")
+}
+
+model AuditLog {
+  id        String      @id @default(uuid()) @db.Uuid
+  userId    String?     @map("user_id") @db.Uuid
+  action    AuditAction
+  entity    String
+  entityId  String?     @map("entity_id")
+  details   String?
+  oldValue  Json?       @map("old_value")
+  newValue  Json?       @map("new_value")
+  ipAddress String?     @map("ip_address")
+  userAgent String?     @map("user_agent")
+  createdAt DateTime    @default(now()) @map("created_at")
+  user      User?       @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([action])
+  @@index([entity])
+  @@index([entityId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+model Setting {
+  key       String   @id
+  value     Json
+  updatedBy String?  @map("updated_by") @db.Uuid
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("settings")
+}
+
+model CodeSequence {
+  id        String @id
+  prefix    String
+  nextValue Int    @default(1) @map("next_value")
+
+  @@map("code_sequences")
+}

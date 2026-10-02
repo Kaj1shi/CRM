@@ -1,0 +1,35 @@
+/**
+ * English UI strings shared across Shell and pages.
+ * Keep copy here so wording stays consistent (product is English-only).
+ */
+export const messages = {
+  appName: "Factory CRM",
+  login: "Sign in",
+  email: "Email",
+  password: "Password",
+  forgot: "Forgot password",
+  dashboard: "Dashboard",
+  clients: "Clients",
+  suppliers: "Suppliers",
+  products: "Products",
+  transactions: "Transactions",
+  reports: "Reports",
+  users: "Users",
+  audit: "Audit logs",
+  settings: "Settings",
+  logout: "Log out",
+  search: "Search",
+  save: "Save",
+  cancel: "Cancel",
+  saving: "Saving...",
+  emptyClients: "No clients have been registered yet.",
+  emptySuppliers: "No suppliers have been registered yet.",
+  emptyProducts: "No products have been registered yet.",
+  emptyTransactions: "No transactions have been recorded yet.",
+  addClient: "Add client",
+  addSupplier: "Add supplier",
+  addProduct: "Add product",
+  recordTransaction: "Record transaction",
+  tonneHint: "1 tonne = 1,000 kg",
+  activityNote: "Activity is a system classification based on transaction history.",
+} as const;

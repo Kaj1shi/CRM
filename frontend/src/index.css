@@ -1,0 +1,110 @@
+/**
+ * Global styles: Geist font, emerald theme remaps, data-table chrome,
+ * sidebar collapse transitions. Prefer shared classes over per-page CSS.
+ */
+@import "@fontsource-variable/geist";
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Geist Variable", ui-sans-serif, system-ui, sans-serif;
+  --color-blue-700: #047857;
+  --color-blue-800: #065f46;
+  --color-slate-900: #2c2825;
+  --color-slate-800: #3f3832;
+  --color-slate-700: #44403c;
+  --color-slate-600: #57534e;
+  --color-slate-500: #78716c;
+  --color-slate-400: #a8a29e;
+  --color-slate-300: #e4ddd2;
+  --color-slate-200: #ebe4da;
+  --color-slate-100: #f3efe8;
+  --color-slate-50: #f7f3ec;
+  --color-amber-50: #f8f1e3;
+  --color-amber-200: #ead9b8;
+  --color-red-700: #9f2f2d;
+}
+
+body {
+  margin: 0;
+  background:
+    radial-gradient(900px 420px at 0% -10%, rgba(5, 150, 105, 0.12), transparent 60%),
+    #f6f4ef;
+  color: #2c2825;
+  font-family: var(--font-sans);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.55;
+}
+
+h1 { letter-spacing: -0.03em; text-wrap: balance; }
+button, a, input, select, textarea { font: inherit; }
+button { transition: background-color 180ms cubic-bezier(0.16, 1, 0.3, 1), transform 180ms cubic-bezier(0.16, 1, 0.3, 1), color 180ms cubic-bezier(0.16, 1, 0.3, 1); }
+button:active:not(:disabled) { transform: scale(0.98); }
+:focus-visible { outline: 2px solid #059669; outline-offset: 2px; }
+::selection { background: #d1fae5; }
+
+table { border-collapse: collapse; }
+.data-panel {
+  overflow: hidden;
+  border: 1px solid #e8e4dc;
+  border-radius: 0.75rem;
+  background: #fffcf8;
+  box-shadow: 0 1px 2px rgba(44, 40, 37, 0.04);
+}
+.data-panel__title {
+  padding: 0.95rem 1.15rem;
+  border-bottom: 1px solid #ebe4da;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #2c2825;
+}
+.data-table {
+  width: 100%;
+  text-align: left;
+  font-size: 0.875rem;
+}
+.data-table thead th {
+  background: #f3f0ea;
+  color: #57534e;
+  font-weight: 600;
+  font-size: 0.78rem;
+  letter-spacing: 0.01em;
+  padding: 0.85rem 1.15rem;
+  border-bottom: 1px solid #ebe4da;
+  white-space: nowrap;
+}
+.data-table tbody td {
+  padding: 1rem 1.15rem;
+  border-bottom: 1px solid #f0ebe3;
+  color: #3f3832;
+  vertical-align: middle;
+}
+.data-table tbody tr:last-child td { border-bottom: none; }
+.data-table tbody tr { transition: background-color 160ms cubic-bezier(0.16, 1, 0.3, 1); }
+.data-table tbody tr:hover { background: #faf7f2; }
+thead th { font-weight: 500; color: #78716c; }
+tbody tr { transition: background-color 160ms cubic-bezier(0.16, 1, 0.3, 1); }
+tbody tr:hover { background: #f7f3ec; }
+
+.skip-link {
+  position: absolute;
+  left: 1rem;
+  top: -4rem;
+  z-index: 20;
+  background: #2c2825;
+  color: #f6f4ef;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.375rem;
+}
+.skip-link:focus { top: 1rem; }
+
+.sidebar-width { transition: width 480ms cubic-bezier(0.32, 0.72, 0, 1); will-change: width; }
+.sidebar-offset { transition: padding-left 480ms cubic-bezier(0.32, 0.72, 0, 1); }
+.sidebar-label { transition: opacity 160ms ease; }
+.sidebar-fold { transition: grid-template-rows 480ms cubic-bezier(0.32, 0.72, 0, 1), opacity 160ms ease; }
+.nav-toggle-bar { transition: transform 480ms cubic-bezier(0.32, 0.72, 0, 1), opacity 160ms ease; }
+.nav-toggle:active { transform: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  button, tbody tr, .sidebar-width, .sidebar-offset, .sidebar-label, .sidebar-fold, .nav-toggle-bar { transition: none; }
+  button:active:not(:disabled) { transform: none; }
+}
