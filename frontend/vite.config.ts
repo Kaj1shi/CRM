@@ -4,7 +4,5 @@ import { defineConfig } from "vitest/config";
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
-  server: { port: 5175, strictPort: true, proxy: { "/api": "http://localhost:3000" } },
-  preview: { port: 5175, strictPort: true },
-  test: { environment: "jsdom", setupFiles: "./src/test-setup.ts", include: ["src/**/*.test.ts", "src/**/*.test.tsx"] },
+  base: '/CRM/',
 });
