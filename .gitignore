@@ -1,0 +1,15 @@
+node_modules/
+dist/
+coverage/
+.env
+.env.local
+backend/.env
+frontend/.env
+*.log
+.DS_Store
+playwright-report/
+test-results/
+# Agent skill mirrors (symlinks to .agents/skills; keep local only)
+.agents/
+data/
+skills/
