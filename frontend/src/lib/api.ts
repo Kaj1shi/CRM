@@ -26,8 +26,15 @@ export class ApiError extends Error {
   }
 }
 
+/** Empty in local dev (Vite proxies /api). Set VITE_API_URL when the API is on another host. */
+const apiRoot = (import.meta.env.VITE_API_URL ?? "").replace(/\/$/, "");
+
+function requestUrl(path: string) {
+  return `${apiRoot}${path}`;
+}
+
 async function loadCsrf() {
-  const response = await fetch("/api/auth/csrf", { credentials: "include" });
+  const response = await fetch(requestUrl("/api/auth/csrf"), { credentials: "include" });
   const body = (await response.json()) as Envelope<{ csrfToken: string }>;
   csrfToken = body.data.csrfToken;
 }
@@ -41,7 +48,7 @@ export async function api<T>(path: string, options: RequestInit = {}): Promise<E
   if (accessToken) headers.set("Authorization", `Bearer ${accessToken}`);
   if (csrfToken && method !== "GET" && method !== "HEAD") headers.set("x-csrf-token", csrfToken);
 
-  const response = await fetch(path, { ...options, headers, credentials: "include" });
+  const response = await fetch(requestUrl(path), { ...options, headers, credentials: "include" });
   const body = (await response.json()) as Envelope<T>;
   if (!response.ok || body.success === false) throw new ApiError(body.message ?? "Request failed.", body.errors);
   return body;
